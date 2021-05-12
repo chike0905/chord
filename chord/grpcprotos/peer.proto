@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+message GetSuccessor {
+    string id = 1;
+}
+
+message Successor {
+    string suc_id = 1;
+    bytes  suc_ip = 2;
+    uint32 suc_port = 3; 
+}
+
+service Peer {
+    rpc getSuccessor (GetSuccessor) returns (Successor) {}
+}
