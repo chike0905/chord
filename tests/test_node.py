@@ -101,6 +101,6 @@ def test_ServeGetSuccessor(node) -> None:
     node_id = "hoge"
 
     response = stub.getSuccessor(peer_pb2.GetSuccessor(id=node_id))
-    print(f"Successor ID: {response.suc_id}")
-    print(f"Successor IP: {response.suc_ip}")
-    print(f"Successor Port: {response.suc_port}")
+    assert response.suc_id == hashlib.sha256(IP.packed).hexdigest()
+    assert response.suc_ip == IP.packed
+    assert response.suc_port == PORT

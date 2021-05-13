@@ -1,6 +1,9 @@
 import hashlib
 import ipaddress
 
+from abc import ABCMeta
+from abc import abstractmethod
+
 import grpc
 from chord.grpcprotos import peer_pb2
 from chord.grpcprotos import peer_pb2_grpc  
@@ -31,7 +34,8 @@ def isBetween(start: Key, end: Key, target: Key) -> bool:
     else: # start.value >= end.value
         return start.value < target.value or target.value <= end.value
 
-class Peer():
+
+class Peer(metaclass = ABCMeta):
     ip: ipaddress.IPv4Address
     port: int
     id: Key
@@ -40,7 +44,22 @@ class Peer():
         self.ip = ip
         self.port = port
         self.id = id
-        
+
+    @abstractmethod
+    def successor(self):  # type: ignore
+        pass
+
+
+class LocalPeer(Peer):
+    def successor(self) -> Peer:
+        return self
+
+
+class RemotePeer(Peer):
+    def successor(self) -> Peer:
+        print("not implemented")
+        return self
+
 
 class Finger():
     start: Key
@@ -68,13 +87,14 @@ class FingerTable():
         start_key = addKey(node_id, Key(hex(2**index)[2:].zfill(64)))
         return Finger(start_key)
 
+
 class Node():
     ip: ipaddress.IPv4Address
     port: int
     id: Key 
     table: FingerTable
     
-    def __init__(self, ip: ipaddress.IPv4Address, port: int, initialpeer: Optional[Peer] = None) -> None:
+    def __init__(self, ip: ipaddress.IPv4Address, port: int, initialpeer: Optional[RemotePeer] = None) -> None:
         self.ip = ip
         self.port = port
         self.id = self._generateNodeId()
@@ -82,28 +102,29 @@ class Node():
 
         self._initFingerTable(initialpeer)
     
-    def _initFingerTable(self, initialpeer: Optional[Peer]) -> None:
+    def _initFingerTable(self, initialpeer: Optional[RemotePeer]) -> None:
         if initialpeer:
             print("Note: Not implemented")
         else:
             for i in range(KEYLENGTH):
-                self.table.fingers[i].node = Peer(self.ip, self.port, self.id)
-            self.table.successor = self.table.fingers[0].node
-            self.table.predecessor = Peer(self.ip, self.port, self.id)
+                self.table.fingers[i].node = LocalPeer(self.ip, self.port, self.id)
+            self.table.successor = self.table.fingers[0].node #type: ignore
+            self.table.predecessor = LocalPeer(self.ip, self.port, self.id)
 
     def _generateNodeId(self) -> Key:
         return Key(hashlib.sha256(self.ip.packed).hexdigest())
 
-    def findSuccessor(self, key: Key) -> Key:
-        predecessor: Peer = self.findPredecessor(key)
+    def findSuccessor(self, key: Key) -> Union[LocalPeer, RemotePeer]:
+        predecessor: Union[LocalPeer, RemotePeer] = self.findPredecessor(key)
         return predecessor.successor()
 
     def findPredecessor(self, key: Key) -> Peer:
-        node = Peer(self.ip, self.port, self.id) 
+        node = LocalPeer(self.ip, self.port, self.id) 
         suc = self.table.successor.id
         while not isBetween(node.id, suc, key):
             print("not implemented")
         return node
+
 
 class NodeServicer(peer_pb2_grpc.PeerServicer):
     def __init__(self, ip: ipaddress.IPv4Address, port: int) -> None:
@@ -111,7 +132,8 @@ class NodeServicer(peer_pb2_grpc.PeerServicer):
         self.node = Node(ip, port)
 
     def getSuccessor(self, request, context): #type: ignore
-        return peer_pb2.Successor(suc_id="hoge", suc_ip=b"aaa", suc_port=114514)
+        suc = self.node.table.successor
+        return peer_pb2.Successor(suc_id=suc.id.value, suc_ip=suc.ip.packed, suc_port=suc.port)
 
 from concurrent import futures
 import time
