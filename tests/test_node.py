@@ -74,8 +74,8 @@ def test_init_node() -> None:
 def test_findSuccessor() -> None:
     node = Node(IP, PORT)# id: 5b9b2b3122bdac7e303b15bfc5895c10204de107f16bd16104f24184583c13ed
     key = Key("1".zfill(64))
-    #suc = node.findSuccessor(key)
-    #assert suc.id.value == node.id.value
+    suc = node.findSuccessor(key)
+    assert suc.id.value == node.id.value
 
 def test_NodeServicer() -> None:
     NodeServicer(IP, PORT)
