@@ -37,6 +37,16 @@ class RemotePeer(Peer):
         print("not implemented")
         return self
 
+    def findSuccessor(self, id: Key): # type: ignore #RemotePeer
+        channel = grpc.insecure_channel(self.ip.compressed +":" + str(self.port))
+        stub = peer_pb2_grpc.PeerStub(channel) #type: ignore
+
+        response = stub.findSuccessor(peer_pb2.FindSuccessor(key=id.value))
+        
+        ip = ipaddress.IPv4Address(self.ip)
+        nodeid = hashlib.sha256(ip.packed).hexdigest()
+        return RemotePeer(ip, 8888, Key(nodeid))
+
 class LocalPeer(Peer):
     successor: RemotePeer
 
@@ -87,18 +97,22 @@ class Node():
         self.port = port
         self.id = self._generateNodeId()
         self.table = FingerTable(self.id)
+        
+        self._join(initialpeer)
 
-        self._initFingerTable(initialpeer)
-    
-    def _initFingerTable(self, initialpeer: Optional[RemotePeer]) -> None:
+    def _join(self, initialpeer: Optional[RemotePeer]) -> None:
         if initialpeer:
-            print("Note: Not implemented")
+            self._initFingerTable(initialpeer)
         else:
             self.localpeer = LocalPeer(self.ip, self.port, self.id, RemotePeer(self.ip, self.port, self.id))
             for i in range(KEYLENGTH):
                 self.table.fingers[i].node = self.localpeer
             self.table.successor = self.table.fingers[0].node #type: ignore
             self.table.predecessor = self.localpeer
+
+    def _initFingerTable(self, initialpeer: RemotePeer) -> None:
+        self.table.fingers[0].node = initialpeer.findSuccessor(self.table.fingers[0].start)
+        print("Note: Not implemented")
 
     def _generateNodeId(self) -> Key:
         return Key(hashlib.sha256(self.ip.packed).hexdigest())
@@ -122,6 +136,10 @@ class NodeServicer(peer_pb2_grpc.PeerServicer):
 
     def getSuccessor(self, request, context): #type: ignore
         suc = self.node.table.successor
+        return peer_pb2.Successor(suc_id=suc.id.value, suc_ip=suc.ip.packed, suc_port=suc.port)
+    
+    def findSuccessor(self, request, context): #type: ignore
+        suc: Union[LocalPeer, RemotePeer] = self.node.findSuccessor(Key(request.key))
         return peer_pb2.Successor(suc_id=suc.id.value, suc_ip=suc.ip.packed, suc_port=suc.port)
 
 from concurrent import futures

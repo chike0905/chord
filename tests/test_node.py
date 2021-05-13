@@ -6,7 +6,7 @@ import hashlib
 
 # Node A
 # id: 5b9b2b3122bdac7e303b15bfc5895c10204de107f16bd16104f24184583c13ed
-IP = ipaddress.IPv4Address("192.168.56.1")
+IP = ipaddress.IPv4Address("127.0.0.1")
 PORT = 3343
 
 # Node B
@@ -104,3 +104,29 @@ def test_ServeGetSuccessor(node) -> None:
     assert response.suc_id == hashlib.sha256(IP.packed).hexdigest()
     assert response.suc_ip == IP.packed
     assert response.suc_port == PORT
+
+def test_ServeFindSuccessor(node) -> None:
+    channel = grpc.insecure_channel("[::]:" + str(PORT))
+    stub = peer_pb2_grpc.PeerStub(channel)
+    key = Key("1".zfill(64))
+    
+    response = stub.findSuccessor(peer_pb2.FindSuccessor(key=key.value))
+    assert response.suc_id == hashlib.sha256(IP.packed).hexdigest()
+    assert response.suc_ip == IP.packed
+    assert response.suc_port == PORT
+
+def test_findSuccessorOnRemotePeer(node):
+    nodeid = hashlib.sha256(IP.packed).hexdigest()
+    peer = RemotePeer(IP, PORT, Key(nodeid))
+    key = Key("1".zfill(64))
+    suc = peer.findSuccessor(key) # Note: There is a single node in a Chord ring. It returns RemotePeer itself.
+    assert suc.id.value == nodeid
+
+
+def test_initFingerWithInitialPeer(node) -> None:
+    nodeid = hashlib.sha256(IP.packed).hexdigest()
+    initial_peer = RemotePeer(IP, PORT, Key(nodeid))
+    node = Node(B_IP, B_PORT, initial_peer)
+    
+    assert node.table.successor.id == nodeid 
+

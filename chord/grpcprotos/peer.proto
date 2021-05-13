@@ -1,7 +1,13 @@
 syntax = "proto3";
 
+// Get the successor of the peer itself
 message GetSuccessor {
     string id = 1;
+}
+
+// Get the successor of the specified key 
+message FindSuccessor {
+    string key = 1;
 }
 
 message Successor {
@@ -12,4 +18,5 @@ message Successor {
 
 service Peer {
     rpc getSuccessor (GetSuccessor) returns (Successor) {}
+    rpc findSuccessor (FindSuccessor) returns (Successor) {}
 }

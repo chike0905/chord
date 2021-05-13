@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\npeer.proto\"\x1a\n\x0cGetSuccessor\x12\n\n\x02id\x18\x01 \x01(\t\"=\n\tSuccessor\x12\x0e\n\x06suc_id\x18\x01 \x01(\t\x12\x0e\n\x06suc_ip\x18\x02 \x01(\x0c\x12\x10\n\x08suc_port\x18\x03 \x01(\r23\n\x04Peer\x12+\n\x0cgetSuccessor\x12\r.GetSuccessor\x1a\n.Successor\"\x00\x62\x06proto3'
+  serialized_pb=b'\n\npeer.proto\"\x1a\n\x0cGetSuccessor\x12\n\n\x02id\x18\x01 \x01(\t\"\x1c\n\rFindSuccessor\x12\x0b\n\x03key\x18\x01 \x01(\t\"=\n\tSuccessor\x12\x0e\n\x06suc_id\x18\x01 \x01(\t\x12\x0e\n\x06suc_ip\x18\x02 \x01(\x0c\x12\x10\n\x08suc_port\x18\x03 \x01(\r2b\n\x04Peer\x12+\n\x0cgetSuccessor\x12\r.GetSuccessor\x1a\n.Successor\"\x00\x12-\n\rfindSuccessor\x12\x0e.FindSuccessor\x1a\n.Successor\"\x00\x62\x06proto3'
 )
 
 
@@ -54,6 +54,38 @@ _GETSUCCESSOR = _descriptor.Descriptor(
   ],
   serialized_start=14,
   serialized_end=40,
+)
+
+
+_FINDSUCCESSOR = _descriptor.Descriptor(
+  name='FindSuccessor',
+  full_name='FindSuccessor',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='key', full_name='FindSuccessor.key', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=42,
+  serialized_end=70,
 )
 
 
@@ -98,11 +130,12 @@ _SUCCESSOR = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=42,
-  serialized_end=103,
+  serialized_start=72,
+  serialized_end=133,
 )
 
 DESCRIPTOR.message_types_by_name['GetSuccessor'] = _GETSUCCESSOR
+DESCRIPTOR.message_types_by_name['FindSuccessor'] = _FINDSUCCESSOR
 DESCRIPTOR.message_types_by_name['Successor'] = _SUCCESSOR
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
@@ -112,6 +145,13 @@ GetSuccessor = _reflection.GeneratedProtocolMessageType('GetSuccessor', (_messag
   # @@protoc_insertion_point(class_scope:GetSuccessor)
   })
 _sym_db.RegisterMessage(GetSuccessor)
+
+FindSuccessor = _reflection.GeneratedProtocolMessageType('FindSuccessor', (_message.Message,), {
+  'DESCRIPTOR' : _FINDSUCCESSOR,
+  '__module__' : 'peer_pb2'
+  # @@protoc_insertion_point(class_scope:FindSuccessor)
+  })
+_sym_db.RegisterMessage(FindSuccessor)
 
 Successor = _reflection.GeneratedProtocolMessageType('Successor', (_message.Message,), {
   'DESCRIPTOR' : _SUCCESSOR,
@@ -129,8 +169,8 @@ _PEER = _descriptor.ServiceDescriptor(
   index=0,
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_start=105,
-  serialized_end=156,
+  serialized_start=135,
+  serialized_end=233,
   methods=[
   _descriptor.MethodDescriptor(
     name='getSuccessor',
@@ -138,6 +178,16 @@ _PEER = _descriptor.ServiceDescriptor(
     index=0,
     containing_service=None,
     input_type=_GETSUCCESSOR,
+    output_type=_SUCCESSOR,
+    serialized_options=None,
+    create_key=_descriptor._internal_create_key,
+  ),
+  _descriptor.MethodDescriptor(
+    name='findSuccessor',
+    full_name='Peer.findSuccessor',
+    index=1,
+    containing_service=None,
+    input_type=_FINDSUCCESSOR,
     output_type=_SUCCESSOR,
     serialized_options=None,
     create_key=_descriptor._internal_create_key,

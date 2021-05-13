@@ -19,6 +19,11 @@ class PeerStub(object):
                 request_serializer=peer__pb2.GetSuccessor.SerializeToString,
                 response_deserializer=peer__pb2.Successor.FromString,
                 )
+        self.findSuccessor = channel.unary_unary(
+                '/Peer/findSuccessor',
+                request_serializer=peer__pb2.FindSuccessor.SerializeToString,
+                response_deserializer=peer__pb2.Successor.FromString,
+                )
 
 
 class PeerServicer(object):
@@ -30,12 +35,23 @@ class PeerServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def findSuccessor(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_PeerServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'getSuccessor': grpc.unary_unary_rpc_method_handler(
                     servicer.getSuccessor,
                     request_deserializer=peer__pb2.GetSuccessor.FromString,
+                    response_serializer=peer__pb2.Successor.SerializeToString,
+            ),
+            'findSuccessor': grpc.unary_unary_rpc_method_handler(
+                    servicer.findSuccessor,
+                    request_deserializer=peer__pb2.FindSuccessor.FromString,
                     response_serializer=peer__pb2.Successor.SerializeToString,
             ),
     }
@@ -61,6 +77,23 @@ class Peer(object):
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/Peer/getSuccessor',
             peer__pb2.GetSuccessor.SerializeToString,
+            peer__pb2.Successor.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def findSuccessor(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/Peer/findSuccessor',
+            peer__pb2.FindSuccessor.SerializeToString,
             peer__pb2.Successor.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
