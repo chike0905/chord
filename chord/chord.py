@@ -1,3 +1,6 @@
+from __future__ import annotations
+from typing import List, Union, Optional
+
 import hashlib
 import ipaddress
 
@@ -10,7 +13,6 @@ from chord.grpcprotos import peer_pb2_grpc
 
 from chord.key import *
 
-from typing import List, Union, Optional
 
 
 KEYLENGTH = 256  # Note: we use sha256 hash as a key
@@ -22,40 +24,50 @@ class Peer(metaclass = ABCMeta):
     port: int
     id: Key
 
-    def __init__(self, ip: ipaddress.IPv4Address, port: int, id: Key) -> None:
+    def __init__(self, ip: ipaddress.IPv4Address, port: int) -> None:
         self.ip = ip
         self.port = port
-        self.id = id
+        self.id = self._generateId()
+    
+    def _generateId(self) -> Key:
+        return Key(hashlib.sha256(self.ip.packed).hexdigest())
 
     @abstractmethod
-    def getSuccessor(self):  # type: ignore
+    def getSuccessor(self) -> Peer:
         pass
 
+    @abstractmethod
+    def getPredecessor(self) -> Peer: 
+        pass
+
+    @abstractmethod
+    def findSuccessor(self, id: Key) -> Peer:
+        pass
 
 class RemotePeer(Peer):
-    def getSuccessor(self): # type: ignore #RemotePeer
-        print("not implemented")
-        return self
+    def getSuccessor(self) -> Peer:
+        stub = self._getStub()
 
-    def findSuccessor(self, id: Key): # type: ignore #RemotePeer
-        channel = grpc.insecure_channel(self.ip.compressed +":" + str(self.port))
-        stub = peer_pb2_grpc.PeerStub(channel) #type: ignore
-
-        response = stub.findSuccessor(peer_pb2.FindSuccessor(key=id.value))
+        response = stub.getSuccessor(peer_pb2.GetSuccessor())
+        ip = ipaddress.IPv4Address(response.suc_ip)
         
-        ip = ipaddress.IPv4Address(self.ip)
-        nodeid = hashlib.sha256(ip.packed).hexdigest()
-        return RemotePeer(ip, 8888, Key(nodeid))
+        return RemotePeer(ip, response.suc_port)
+    
+    def getPredecessor(self) -> Peer: 
+        pass
 
-class LocalPeer(Peer):
-    successor: RemotePeer
+    def findSuccessor(self, id: Key) -> Peer:
+        stub = self._getStub()
 
-    def __init__(self, ip: ipaddress.IPv4Address, port: int, id: Key, successor: RemotePeer) -> None:
-        super().__init__(ip, port, id)
-        self.successor = successor
+        response = stub.findSuccessor(peer_pb2.FindSuccessor(key=id.value))       
+        ip = ipaddress.IPv4Address(response.suc_ip)
+        
+        return RemotePeer(ip, response.suc_port)
 
-    def getSuccessor(self) -> RemotePeer:
-        return self.successor
+    def _getStub(self) -> peer_pb2_grpc.PeerStub:
+        channel = grpc.insecure_channel(self.ip.compressed +":" + str(self.port))
+        return peer_pb2_grpc.PeerStub(channel) # type: ignore
+
 
 
 class Finger():
@@ -63,15 +75,15 @@ class Finger():
     interval: Optional[bytes]
     node: Optional[Peer]
     
-    def __init__(self, start: Key, interval: bytes = None, node: Peer = None) -> None:
+    def __init__(self, start: Key, interval: bytes = None, node: Optional[Peer] = None) -> None:
         self.start = start
         self.interval = interval
         self.node = node
 
 
 class FingerTable():
-    successor: Union[LocalPeer, RemotePeer]
-    predecessor: Union[LocalPeer, RemotePeer]
+    successor: Peer
+    predecessor: Peer
     fingers: List[Finger]
     
     def __init__(self, node_id: Key) -> None:
@@ -85,54 +97,50 @@ class FingerTable():
         return Finger(start_key)
 
 
-class Node():
-    ip: ipaddress.IPv4Address
-    port: int
-    id: Key 
+class LocalPeer(Peer):
     table: FingerTable
-    localpeer: LocalPeer
-    
-    def __init__(self, ip: ipaddress.IPv4Address, port: int, initialpeer: Optional[RemotePeer] = None) -> None:
-        self.ip = ip
-        self.port = port
-        self.id = self._generateNodeId()
-        self.table = FingerTable(self.id)
-        
-        self._join(initialpeer)
+    id: Key
 
+    def __init__(self, ip: ipaddress.IPv4Address, port: int, initialpeer: Optional[RemotePeer] = None) -> None:
+        super().__init__(ip, port)
+        self.table = FingerTable(self.id)
+
+        self._join(initialpeer)
+    
     def _join(self, initialpeer: Optional[RemotePeer]) -> None:
         if initialpeer:
             self._initFingerTable(initialpeer)
         else:
-            self.localpeer = LocalPeer(self.ip, self.port, self.id, RemotePeer(self.ip, self.port, self.id))
             for i in range(KEYLENGTH):
-                self.table.fingers[i].node = self.localpeer
+                self.table.fingers[i].node = self
             self.table.successor = self.table.fingers[0].node #type: ignore
-            self.table.predecessor = self.localpeer
+            self.table.predecessor = self
 
     def _initFingerTable(self, initialpeer: RemotePeer) -> None:
-        self.table.fingers[0].node = initialpeer.findSuccessor(self.table.fingers[0].start)
-        print("Note: Not implemented")
+        pass
 
-    def _generateNodeId(self) -> Key:
-        return Key(hashlib.sha256(self.ip.packed).hexdigest())
+    def getSuccessor(self) -> Peer:
+        return self.table.successor
 
-    def findSuccessor(self, key: Key) -> Union[LocalPeer, RemotePeer]:
-        predecessor: Union[LocalPeer, RemotePeer] = self.findPredecessor(key)
+    def getPredecessor(self): # type: ignore #Peer
+        return self.table.predecessor
+
+    def findSuccessor(self, key: Key): # type: ignore #Peer
+        predecessor: Peer = self.findPredecessor(key)
         return predecessor.getSuccessor()
-
-    def findPredecessor(self, key: Key) -> Union[LocalPeer, RemotePeer]:
-        node = self.localpeer
-        suc = node.getSuccessor()
+ 
+    def findPredecessor(self, key: Key) -> Peer:
+        node: Peer = self
+        suc: Peer = node.getSuccessor()
         while not isBetween(node.id, suc.id, key):
-            print("not implemented")
+            print("Note: Not implemented")
         return node
 
 
 class NodeServicer(peer_pb2_grpc.PeerServicer):
     def __init__(self, ip: ipaddress.IPv4Address, port: int) -> None:
         super().__init__()
-        self.node = Node(ip, port)
+        self.node = LocalPeer(ip, port)
 
     def getSuccessor(self, request, context): #type: ignore
         suc = self.node.table.successor
