@@ -1,8 +1,16 @@
 syntax = "proto3";
 
+// Request Messages
 // Get the successor of the peer itself
-message GetSuccessor {
-    string id = 1;
+message GetSuccessor {}
+
+// Get the predecessor of the peer itself
+message GetPredecessor {}
+
+// Notify and Update the predecessor of the recived peer
+message NotifyPredecessor {
+    bytes  ip = 1;
+    uint32 port = 2; 
 }
 
 // Get the successor of the specified key 
@@ -10,13 +18,21 @@ message FindSuccessor {
     string key = 1;
 }
 
-message Successor {
-    string suc_id = 1;
-    bytes  suc_ip = 2;
-    uint32 suc_port = 3; 
+// Response Messages
+message PeerResponse {
+    string id = 1;
+    bytes  ip = 2;
+    uint32 port = 3; 
+}
+
+message StatusResponse {
+    bool res = 1;
+    // TODO: status messsage strings
 }
 
 service Peer {
-    rpc getSuccessor (GetSuccessor) returns (Successor) {}
-    rpc findSuccessor (FindSuccessor) returns (Successor) {}
+    rpc getSuccessor (GetSuccessor) returns (PeerResponse) {}
+    rpc getPredecessor (GetPredecessor) returns (PeerResponse) {}
+    rpc updatePredecessor (NotifyPredecessor) returns (StatusResponse) {}
+    rpc findSuccessor (FindSuccessor) returns (PeerResponse) {}
 }

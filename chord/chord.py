@@ -39,30 +39,46 @@ class Peer(metaclass = ABCMeta):
     @abstractmethod
     def getPredecessor(self) -> Peer: 
         pass
+    
+    @abstractmethod
+    def updatePredecessor(self, predecessor: Peer) -> bool:
+        pass
 
     @abstractmethod
     def findSuccessor(self, id: Key) -> Peer:
         pass
+
 
 class RemotePeer(Peer):
     def getSuccessor(self) -> Peer:
         stub = self._getStub()
 
         response = stub.getSuccessor(peer_pb2.GetSuccessor())
-        ip = ipaddress.IPv4Address(response.suc_ip)
+        ip = ipaddress.IPv4Address(response.ip)
         
-        return RemotePeer(ip, response.suc_port)
+        return RemotePeer(ip, response.port)
     
     def getPredecessor(self) -> Peer: 
-        pass
+        stub = self._getStub()
+        
+        response = stub.getPredecessor(peer_pb2.GetPredecessor())
+        ip = ipaddress.IPv4Address(response.ip)
+        
+        return RemotePeer(ip, response.port)
+
+    def updatePredecessor(self, predecessor: Peer) -> bool:
+        stub = self._getStub()
+        
+        response = stub.updatePredecessor(peer_pb2.NotifyPredecessor(ip=predecessor.ip.packed, port=predecessor.port))
+        return response.res
 
     def findSuccessor(self, id: Key) -> Peer:
         stub = self._getStub()
 
         response = stub.findSuccessor(peer_pb2.FindSuccessor(key=id.value))       
-        ip = ipaddress.IPv4Address(response.suc_ip)
+        ip = ipaddress.IPv4Address(response.ip)
         
-        return RemotePeer(ip, response.suc_port)
+        return RemotePeer(ip, response.port)
 
     def _getStub(self) -> peer_pb2_grpc.PeerStub:
         channel = grpc.insecure_channel(self.ip.compressed +":" + str(self.port))
@@ -117,15 +133,24 @@ class LocalPeer(Peer):
             self.table.predecessor = self
 
     def _initFingerTable(self, initialpeer: RemotePeer) -> None:
-        pass
+        self.table.fingers[0].node = initialpeer.findSuccessor(self.table.fingers[0].start)
+        self.table.successor = self.table.fingers[0].node #type: ignore 
+        self.table.successor.updatePredecessor(self)
+        print("Note: Not implemented Finger Update")
+        
 
     def getSuccessor(self) -> Peer:
         return self.table.successor
 
-    def getPredecessor(self): # type: ignore #Peer
+    def getPredecessor(self) -> Peer:
         return self.table.predecessor
+    
+    def updatePredecessor(self, predecessor: Peer) -> bool:
+        # TODO: Validation of proposed predecessor
+        self.table.predecessor = predecessor
+        return True
 
-    def findSuccessor(self, key: Key): # type: ignore #Peer
+    def findSuccessor(self, key: Key) -> Peer:
         predecessor: Peer = self.findPredecessor(key)
         return predecessor.getSuccessor()
  
@@ -143,12 +168,22 @@ class NodeServicer(peer_pb2_grpc.PeerServicer):
         self.node = LocalPeer(ip, port)
 
     def getSuccessor(self, request, context): #type: ignore
-        suc = self.node.table.successor
-        return peer_pb2.Successor(suc_id=suc.id.value, suc_ip=suc.ip.packed, suc_port=suc.port)
+        peer = self.node.getSuccessor()
+        return peer_pb2.PeerResponse(id=peer.id.value, ip=peer.ip.packed, port=peer.port)
     
+    def getPredecessor(self, request, context): #type: ignore
+        peer = self.node.getPredecessor()
+        return peer_pb2.PeerResponse(id=peer.id.value, ip=peer.ip.packed, port=peer.port)
+    
+    def updatePredecessor(self, request, context): #type: ignore
+        ip = ipaddress.IPv4Address(request.ip)
+        new_predecessor = RemotePeer(ip, request.port)
+        res = self.node.updatePredecessor(new_predecessor)
+        return peer_pb2.StatusResponse(res=res)
+
     def findSuccessor(self, request, context): #type: ignore
         suc: Union[LocalPeer, RemotePeer] = self.node.findSuccessor(Key(request.key))
-        return peer_pb2.Successor(suc_id=suc.id.value, suc_ip=suc.ip.packed, suc_port=suc.port)
+        return peer_pb2.PeerResponse(id=suc.id.value, ip=suc.ip.packed, port=suc.port)
 
 from concurrent import futures
 import time
