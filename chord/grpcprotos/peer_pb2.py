@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\npeer.proto\"\x0e\n\x0cGetSuccessor\"\x10\n\x0eGetPredecessor\"-\n\x11NotifyPredecessor\x12\n\n\x02ip\x18\x01 \x01(\x0c\x12\x0c\n\x04port\x18\x02 \x01(\r\"\x1c\n\rFindSuccessor\x12\x0b\n\x03key\x18\x01 \x01(\t\"4\n\x0cPeerResponse\x12\n\n\x02id\x18\x01 \x01(\t\x12\n\n\x02ip\x18\x02 \x01(\x0c\x12\x0c\n\x04port\x18\x03 \x01(\r\"\x1d\n\x0eStatusResponse\x12\x0b\n\x03res\x18\x01 \x01(\x08\x32\xd8\x01\n\x04Peer\x12.\n\x0cgetSuccessor\x12\r.GetSuccessor\x1a\r.PeerResponse\"\x00\x12\x32\n\x0egetPredecessor\x12\x0f.GetPredecessor\x1a\r.PeerResponse\"\x00\x12:\n\x11updatePredecessor\x12\x12.NotifyPredecessor\x1a\x0f.StatusResponse\"\x00\x12\x30\n\rfindSuccessor\x12\x0e.FindSuccessor\x1a\r.PeerResponse\"\x00\x62\x06proto3'
+  serialized_pb=b'\n\npeer.proto\"\x0e\n\x0cGetSuccessor\"\x10\n\x0eGetPredecessor\"-\n\x11NotifyPredecessor\x12\n\n\x02ip\x18\x01 \x01(\x0c\x12\x0c\n\x04port\x18\x02 \x01(\r\"<\n\x11UpdateFingerTable\x12\r\n\x05index\x18\x01 \x01(\r\x12\n\n\x02ip\x18\x02 \x01(\x0c\x12\x0c\n\x04port\x18\x03 \x01(\r\"\x1c\n\rFindSuccessor\x12\x0b\n\x03key\x18\x01 \x01(\t\"4\n\x0cPeerResponse\x12\n\n\x02id\x18\x01 \x01(\t\x12\n\n\x02ip\x18\x02 \x01(\x0c\x12\x0c\n\x04port\x18\x03 \x01(\r\"\x1d\n\x0eStatusResponse\x12\x0b\n\x03res\x18\x01 \x01(\x08\x32\x94\x02\n\x04Peer\x12.\n\x0cgetSuccessor\x12\r.GetSuccessor\x1a\r.PeerResponse\"\x00\x12\x32\n\x0egetPredecessor\x12\x0f.GetPredecessor\x1a\r.PeerResponse\"\x00\x12:\n\x11updatePredecessor\x12\x12.NotifyPredecessor\x1a\x0f.StatusResponse\"\x00\x12:\n\x11updateFingerTable\x12\x12.UpdateFingerTable\x1a\x0f.StatusResponse\"\x00\x12\x30\n\rfindSuccessor\x12\x0e.FindSuccessor\x1a\r.PeerResponse\"\x00\x62\x06proto3'
 )
 
 
@@ -114,6 +114,52 @@ _NOTIFYPREDECESSOR = _descriptor.Descriptor(
 )
 
 
+_UPDATEFINGERTABLE = _descriptor.Descriptor(
+  name='UpdateFingerTable',
+  full_name='UpdateFingerTable',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='index', full_name='UpdateFingerTable.index', index=0,
+      number=1, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='ip', full_name='UpdateFingerTable.ip', index=1,
+      number=2, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"",
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='port', full_name='UpdateFingerTable.port', index=2,
+      number=3, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=95,
+  serialized_end=155,
+)
+
+
 _FINDSUCCESSOR = _descriptor.Descriptor(
   name='FindSuccessor',
   full_name='FindSuccessor',
@@ -141,8 +187,8 @@ _FINDSUCCESSOR = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=95,
-  serialized_end=123,
+  serialized_start=157,
+  serialized_end=185,
 )
 
 
@@ -187,8 +233,8 @@ _PEERRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=125,
-  serialized_end=177,
+  serialized_start=187,
+  serialized_end=239,
 )
 
 
@@ -219,13 +265,14 @@ _STATUSRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=179,
-  serialized_end=208,
+  serialized_start=241,
+  serialized_end=270,
 )
 
 DESCRIPTOR.message_types_by_name['GetSuccessor'] = _GETSUCCESSOR
 DESCRIPTOR.message_types_by_name['GetPredecessor'] = _GETPREDECESSOR
 DESCRIPTOR.message_types_by_name['NotifyPredecessor'] = _NOTIFYPREDECESSOR
+DESCRIPTOR.message_types_by_name['UpdateFingerTable'] = _UPDATEFINGERTABLE
 DESCRIPTOR.message_types_by_name['FindSuccessor'] = _FINDSUCCESSOR
 DESCRIPTOR.message_types_by_name['PeerResponse'] = _PEERRESPONSE
 DESCRIPTOR.message_types_by_name['StatusResponse'] = _STATUSRESPONSE
@@ -251,6 +298,13 @@ NotifyPredecessor = _reflection.GeneratedProtocolMessageType('NotifyPredecessor'
   # @@protoc_insertion_point(class_scope:NotifyPredecessor)
   })
 _sym_db.RegisterMessage(NotifyPredecessor)
+
+UpdateFingerTable = _reflection.GeneratedProtocolMessageType('UpdateFingerTable', (_message.Message,), {
+  'DESCRIPTOR' : _UPDATEFINGERTABLE,
+  '__module__' : 'peer_pb2'
+  # @@protoc_insertion_point(class_scope:UpdateFingerTable)
+  })
+_sym_db.RegisterMessage(UpdateFingerTable)
 
 FindSuccessor = _reflection.GeneratedProtocolMessageType('FindSuccessor', (_message.Message,), {
   'DESCRIPTOR' : _FINDSUCCESSOR,
@@ -282,8 +336,8 @@ _PEER = _descriptor.ServiceDescriptor(
   index=0,
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_start=211,
-  serialized_end=427,
+  serialized_start=273,
+  serialized_end=549,
   methods=[
   _descriptor.MethodDescriptor(
     name='getSuccessor',
@@ -316,9 +370,19 @@ _PEER = _descriptor.ServiceDescriptor(
     create_key=_descriptor._internal_create_key,
   ),
   _descriptor.MethodDescriptor(
+    name='updateFingerTable',
+    full_name='Peer.updateFingerTable',
+    index=3,
+    containing_service=None,
+    input_type=_UPDATEFINGERTABLE,
+    output_type=_STATUSRESPONSE,
+    serialized_options=None,
+    create_key=_descriptor._internal_create_key,
+  ),
+  _descriptor.MethodDescriptor(
     name='findSuccessor',
     full_name='Peer.findSuccessor',
-    index=3,
+    index=4,
     containing_service=None,
     input_type=_FINDSUCCESSOR,
     output_type=_PEERRESPONSE,

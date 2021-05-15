@@ -12,27 +12,51 @@ def test_key() -> None:
         badkey = Key("d")
 
 def test_add_key() -> None:
-    key1 = Key("1".zfill(64))
-    key2 = Key("f".zfill(64))
-    res = Key("10".zfill(64))
+    key1 = Key("1".zfill(64)) # 0000...0001
+    key2 = Key("f".zfill(64)) # 0000...000f
+    res = Key("10".zfill(64)) # 0000...0010
 
     added_key = addKey(key1, key2)
     assert added_key.value == res.value
     
     # Overflow
-    key1 = Key("1".ljust(64, "0"))
-    key2 = Key("f".ljust(64, "0"))
-    res = Key("0".zfill(64))
+    key1 = Key("1".ljust(64, "0")) # 1000...0000
+    key2 = Key("f".ljust(64, "0")) # f000...0000
+    res = Key("0".zfill(64))       # 0000...0000
     
     added_key = addKey(key1, key2)
     assert added_key.value == res.value
     
-    key1 = Key("1".zfill(64))
-    key2 = Key("".ljust(64, "f"))
-    res = Key("0".zfill(64))
+    key1 = Key("1".zfill(64))      # 0000...0001
+    key2 = Key("".ljust(64, "f"))  # ffff...ffff
+    res = Key("0".zfill(64))       # 0000...0000
     
     added_key = addKey(key1, key2)
     assert added_key.value == res.value
+
+def test_subKey() -> None:
+    key1 = Key("10".zfill(64)) # 0000...0010
+    key2 = Key("1".zfill(64)) # 0000...0001
+    res = Key("f".zfill(64)) # 0000...000f
+
+    subed_key = subKey(key1, key2)
+    assert subed_key.value == res.value
+
+    # Overflow
+    key1 = Key("0".zfill(64))       # 0000...0000
+    key2 = Key("1".ljust(64, "0")) # 1000...0000
+    res = Key("f".ljust(64, "0")) # f000...0000
+    
+    subed_key = subKey(key1, key2)
+    assert subed_key.value == res.value
+    
+    key1 = Key("0".zfill(64))       # 0000...0000
+    key2 = Key("1".zfill(64))      # 0000...0001
+    res = Key("".ljust(64, "f"))  # ffff...ffff
+    
+    subed_key = subKey(key1, key2)
+    assert subed_key.value == res.value
+
 
 def test_isBetween() -> None:
     key1 = Key("1".ljust(64, "0"))  # 1000...0000
@@ -53,13 +77,12 @@ def test_init_node() -> None:
     assert node.ip == IP
     assert node.port == PORT
 
-    nodeid = hashlib.sha256(IP.packed).hexdigest()
-    assert nodeid == node.id.value
+    assert node.id.value == ID
 
-    assert nodeid == node.table.successor.id.value
+    assert node.table.successor.id.value == ID
 
     for finger in node.table.fingers:
-        assert nodeid == finger.node.id.value # type: ignore
+        assert finger.node.id.value == ID # type: ignore
 
 def test_getSuccessor() -> None:
     node = LocalPeer(IP, PORT)
@@ -85,3 +108,17 @@ def test_updatePredecessor() -> None:
     
     predecessor: Peer = node.getPredecessor()
     assert predecessor.id.value == new_predecessor.id.value
+
+def test_updateFingerTable() -> None:
+    # Note: This test performed without update other finger
+    node: LocalPeer = LocalPeer(IP, PORT) # 9c9ce...
+    new_finger: Peer = RemotePeer(B_IP, B_PORT) # e762d...
+
+    node.updateFingerTable(new_finger, 1)
+
+    assert node.table.fingers[1].node.id.value == new_finger.id.value
+    
+    node.updateFingerTable(new_finger, 0)
+
+    assert node.table.fingers[0].node.id.value == new_finger.id.value
+    assert node.table.successor.id.value == new_finger.id.value

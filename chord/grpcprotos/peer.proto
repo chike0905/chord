@@ -13,6 +13,13 @@ message NotifyPredecessor {
     uint32 port = 2; 
 }
 
+// Request Update finger table
+message UpdateFingerTable {
+    uint32 index = 1;
+    bytes  ip = 2;
+    uint32 port = 3;
+}
+
 // Get the successor of the specified key 
 message FindSuccessor {
     string key = 1;
@@ -34,5 +41,6 @@ service Peer {
     rpc getSuccessor (GetSuccessor) returns (PeerResponse) {}
     rpc getPredecessor (GetPredecessor) returns (PeerResponse) {}
     rpc updatePredecessor (NotifyPredecessor) returns (StatusResponse) {}
+    rpc updateFingerTable (UpdateFingerTable) returns (StatusResponse) {}
     rpc findSuccessor (FindSuccessor) returns (PeerResponse) {}
 }

@@ -12,6 +12,12 @@ def addKey(key1: Key, key2: Key) -> Key:
         newvalue = newvalue - int("".ljust(64, "f"), 16) - 1
     return Key(hex(newvalue)[2:].zfill(64))
 
+def subKey(key1: Key, key2: Key) -> Key: 
+    newvalue = int(key1.value, 16) - int(key2.value, 16)
+    if newvalue < 0:
+        newvalue = newvalue + int("".ljust(64, "f"), 16) + 1
+    return Key(hex(newvalue)[2:].zfill(64))
+
 def isBetween(start: Key, end: Key, target: Key) -> bool:
     if start.value < end.value:
         return start.value < target.value <= end.value

@@ -30,7 +30,7 @@ class Peer(metaclass = ABCMeta):
         self.id = self._generateId()
     
     def _generateId(self) -> Key:
-        return Key(hashlib.sha256(self.ip.packed).hexdigest())
+        return Key(hashlib.sha256(self.ip.packed + bytes(self.port)).hexdigest())
 
     @abstractmethod
     def getSuccessor(self) -> Peer:
@@ -42,6 +42,10 @@ class Peer(metaclass = ABCMeta):
     
     @abstractmethod
     def updatePredecessor(self, predecessor: Peer) -> bool:
+        pass
+
+    @abstractmethod
+    def updateFingerTable(self, s: Peer, i: int) -> bool:
         pass
 
     @abstractmethod
@@ -70,6 +74,13 @@ class RemotePeer(Peer):
         stub = self._getStub()
         
         response = stub.updatePredecessor(peer_pb2.NotifyPredecessor(ip=predecessor.ip.packed, port=predecessor.port))
+        return response.res
+
+    def updateFingerTable(self, s: Peer, i: int) -> bool:
+        stub = self._getStub()
+        
+        response = stub.updateFingerTable(peer_pb2.UpdateFingerTable(index=i, ip=s.ip.packed, port=s.port))
+        
         return response.res
 
     def findSuccessor(self, id: Key) -> Peer:
@@ -136,7 +147,30 @@ class LocalPeer(Peer):
         self.table.fingers[0].node = initialpeer.findSuccessor(self.table.fingers[0].start)
         self.table.successor = self.table.fingers[0].node #type: ignore 
         self.table.successor.updatePredecessor(self)
-        print("Note: Not implemented Finger Update")
+        
+        for i in range(KEYLENGTH - 1):
+            if isBetween(self.id, self.table.fingers[i].node.id, self.table.fingers[i + 1].start):
+                self.table.fingers[i + 1].node = self.table.fingers[i].node
+            else:
+                self.table.fingers[i + 1].node = initialpeer.findSuccessor(self.table.fingers[i + 1].start)
+
+        self._update_others()
+
+    def _update_others(self) -> None:
+        for i in range(KEYLENGTH):
+            key = subKey(self.id, Key(hex(2**i)[2:].zfill(64)))
+            p = self.findPredecessor(key)
+            p.updateFingerTable(self, i) 
+    
+    def updateFingerTable(self, s: Peer, i: int) -> bool:
+        if isBetween(self.id, self.table.fingers[i].node.id, s.id):
+            self.table.fingers[i].node = s
+            if i == 0:
+                self.table.successor = s
+            
+            if self.table.predecessor.id.value != self.id.value:
+                self.table.predecessor.updateFingerTable(s, i)
+        return True
         
 
     def getSuccessor(self) -> Peer:
@@ -158,8 +192,14 @@ class LocalPeer(Peer):
         node: Peer = self
         suc: Peer = node.getSuccessor()
         while not isBetween(node.id, suc.id, key):
-            print("Note: Not implemented")
+            self.closestPrecedingFinger(key)
         return node
+
+    def closestPrecedingFinger(self, key: Key) -> Peer:
+        for i in reversed(range(KEYLENGTH)):
+            if isBetween(self.id, key, self.table.fingers[i].node.id):
+                return self.table.fingers[i].node
+        return self
 
 
 class NodeServicer(peer_pb2_grpc.PeerServicer):
@@ -179,6 +219,12 @@ class NodeServicer(peer_pb2_grpc.PeerServicer):
         ip = ipaddress.IPv4Address(request.ip)
         new_predecessor = RemotePeer(ip, request.port)
         res = self.node.updatePredecessor(new_predecessor)
+        return peer_pb2.StatusResponse(res=res)
+    
+    def updateFingerTable(self, request, context): #type: ignore
+        ip = ipaddress.IPv4Address(request.ip)
+        new_finger = RemotePeer(ip, request.port)
+        res = self.node.updateFingerTable(new_finger, request.index)
         return peer_pb2.StatusResponse(res=res)
 
     def findSuccessor(self, request, context): #type: ignore

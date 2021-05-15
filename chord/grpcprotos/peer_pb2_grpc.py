@@ -29,6 +29,11 @@ class PeerStub(object):
                 request_serializer=peer__pb2.NotifyPredecessor.SerializeToString,
                 response_deserializer=peer__pb2.StatusResponse.FromString,
                 )
+        self.updateFingerTable = channel.unary_unary(
+                '/Peer/updateFingerTable',
+                request_serializer=peer__pb2.UpdateFingerTable.SerializeToString,
+                response_deserializer=peer__pb2.StatusResponse.FromString,
+                )
         self.findSuccessor = channel.unary_unary(
                 '/Peer/findSuccessor',
                 request_serializer=peer__pb2.FindSuccessor.SerializeToString,
@@ -57,6 +62,12 @@ class PeerServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def updateFingerTable(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def findSuccessor(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -79,6 +90,11 @@ def add_PeerServicer_to_server(servicer, server):
             'updatePredecessor': grpc.unary_unary_rpc_method_handler(
                     servicer.updatePredecessor,
                     request_deserializer=peer__pb2.NotifyPredecessor.FromString,
+                    response_serializer=peer__pb2.StatusResponse.SerializeToString,
+            ),
+            'updateFingerTable': grpc.unary_unary_rpc_method_handler(
+                    servicer.updateFingerTable,
+                    request_deserializer=peer__pb2.UpdateFingerTable.FromString,
                     response_serializer=peer__pb2.StatusResponse.SerializeToString,
             ),
             'findSuccessor': grpc.unary_unary_rpc_method_handler(
@@ -143,6 +159,23 @@ class Peer(object):
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/Peer/updatePredecessor',
             peer__pb2.NotifyPredecessor.SerializeToString,
+            peer__pb2.StatusResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def updateFingerTable(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/Peer/updateFingerTable',
+            peer__pb2.UpdateFingerTable.SerializeToString,
             peer__pb2.StatusResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
