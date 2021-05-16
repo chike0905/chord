@@ -130,9 +130,9 @@ def test_updateFingerTable(initNode: LocalPeer) -> None:
 
     node.updateFingerTable(new_finger, 1)
 
-    assert node.table.fingers[1].node.id.value == new_finger.id.value
+    assert node.table.fingers[1].node.id.value == new_finger.id.value #type: ignore
     
     node.updateFingerTable(new_finger, 0)
 
-    assert node.table.fingers[0].node.id.value == new_finger.id.value
+    assert node.table.fingers[0].node.id.value == new_finger.id.value #type: ignore
     assert node.table.successor.id.value == new_finger.id.value

@@ -58,9 +58,9 @@ def test_initFingerWithInitialPeer(node) -> None: # type: ignore
     # Finger Check
     for i in range(KEYLENGTH):
         if isBetween(localnode.id, initial_peer.id, localnode.table.fingers[i].start):
-            assert localnode.table.fingers[i].node.id.value == initial_peer.id.value
+            assert localnode.table.fingers[i].node.id.value == initial_peer.id.value #type: ignore
         else:
-            assert localnode.table.fingers[i].node.id.value == localnode.id.value
+            assert localnode.table.fingers[i].node.id.value == localnode.id.value #type: ignore
     
     # Teradown 
     nodeB.stop()

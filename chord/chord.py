@@ -152,7 +152,7 @@ class LocalPeer(Peer):
         self.table.successor.updatePredecessor(self)
         
         for i in range(KEYLENGTH - 1):
-            if isBetween(self.id, self.table.fingers[i].node.id, self.table.fingers[i + 1].start):
+            if isBetween(self.id, self.table.fingers[i].node.id, self.table.fingers[i + 1].start): #type: ignore
                 self.table.fingers[i + 1].node = self.table.fingers[i].node
             else:
                 self.table.fingers[i + 1].node = initialpeer.findSuccessor(self.table.fingers[i + 1].start)
@@ -165,7 +165,7 @@ class LocalPeer(Peer):
             p.updateFingerTable(self, i) 
     
     def updateFingerTable(self, s: Peer, i: int) -> bool:
-        if isBetween(self.id, self.table.fingers[i].node.id, s.id):
+        if isBetween(self.id, self.table.fingers[i].node.id, s.id): #type: ignore
             self.table.fingers[i].node = s
             if i == 0:
                 self.table.successor = s
@@ -199,8 +199,8 @@ class LocalPeer(Peer):
 
     def closestPrecedingFinger(self, key: Key) -> Peer:
         for i in reversed(range(KEYLENGTH)):
-            if isBetween(self.id, key, self.table.fingers[i].node.id):
-                return self.table.fingers[i].node
+            if isBetween(self.id, key, self.table.fingers[i].node.id): #type: ignore
+                return self.table.fingers[i].node #type: ignore
         return self
 
 
