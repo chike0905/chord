@@ -33,27 +33,60 @@ def test_findSuccessorOnRemotePeer(node): # type: ignore
     assert suc.id.value == ID
 
 
+def waitLocalNodeJoinProcess(localnode: LocalPeer) -> None:
+    while True:
+        if localnode.joined:
+            break
+
 def test_initFingerWithInitialPeer(node) -> None: # type: ignore
     initial_peer = RemotePeer(IP, PORT) # 9c9ce...
-    localnode = LocalPeer(B_IP, B_PORT, initial_peer) # e762d... 
+    nodeB = NodeServer(B_IP, B_PORT, IP, PORT) # e762d... 
     # Note: The last finger would be localnode itself with following test configration
     #localnode = LocalPeer(B_IP, 3346, initial_peer) # 1df7...
     
+    localnode = nodeB.servicer.node    
+    thread = threading.Thread(None, nodeB.serve)
+    thread.start()
+    
+    waitLocalNodeJoinProcess(localnode)
+
+    # TODO: How to check joininig process is done  
     assert localnode.table.successor.id.value == ID
     suc_predecessor = localnode.table.successor.getPredecessor()
     assert suc_predecessor.id.value == localnode.id.value
-
-    # TODO: Finger Check
+    
+    # Finger Check
     for i in range(KEYLENGTH):
         if isBetween(localnode.id, initial_peer.id, localnode.table.fingers[i].start):
             assert localnode.table.fingers[i].node.id.value == initial_peer.id.value
         else:
             assert localnode.table.fingers[i].node.id.value == localnode.id.value
+    
+    # Teradown 
+    nodeB.stop()
+    thread.join()
 
-def test_findSuccessorWithInitialPeer(node) -> None: # type: ignore
+@pytest.fixture(scope="function")
+def nodeWithInitialPeer(node): # type: ignore
     initial_peer = RemotePeer(IP, PORT) # 9c9ce...
-    localnode = LocalPeer(B_IP, B_PORT, initial_peer) # e762d...
-   
+    nodeB = NodeServer(B_IP, B_PORT, IP, PORT) # e762d... 
+
+    localnode = nodeB.servicer.node    
+    thread = threading.Thread(None, nodeB.serve)
+    thread.start()
+    
+    # Wait localnode joined
+    waitLocalNodeJoinProcess(localnode)
+
+    yield localnode
+
+    nodeB.stop()
+    thread.join()
+
+def test_findSuccessorWithInitialPeer(nodeWithInitialPeer) -> None: # type: ignore 
+    initial_peer = RemotePeer(IP, PORT) # 9c9ce...
+    localnode = nodeWithInitialPeer
+
     key = Key("1".ljust(64, "0")) # 1000...0000
     suc = localnode.findSuccessor(key)
 

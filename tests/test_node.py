@@ -70,10 +70,10 @@ def test_isBetween() -> None:
     assert not isBetween(key1, key2, key)
     assert isBetween(key2, key1, key)
 
-    
-
 def test_init_node() -> None:
     node = LocalPeer(IP, PORT)
+    node.join()
+
     assert node.ip == IP
     assert node.port == PORT
 
@@ -84,24 +84,38 @@ def test_init_node() -> None:
     for finger in node.table.fingers:
         assert finger.node.id.value == ID # type: ignore
 
-def test_getSuccessor() -> None:
+@pytest.fixture(scope="function")
+def initNode() -> None: # type: ignore
     node = LocalPeer(IP, PORT)
+    node.join()
+
+    yield node
+
+
+def test_getSuccessor(initNode: LocalPeer) -> None:
+    node = initNode
+    
     successor: Peer = node.getSuccessor()
+    
     assert successor.id.value == node.id.value
 
-def test_getPredecessor() -> None:
-    node = LocalPeer(IP, PORT)
+def test_getPredecessor(initNode: LocalPeer) -> None:
+    node = initNode
+    
     predecessor: Peer = node.getPredecessor()
+    
     assert predecessor.id.value == node.id.value
 
-def test_findSuccessor() -> None:
-    node = LocalPeer(IP, PORT)
+def test_findSuccessor(initNode: LocalPeer) -> None:
+    node = initNode
     key = Key("1".zfill(64))
+    
     suc = node.findSuccessor(key)
+    
     assert suc.id.value == node.id.value
 
-def test_updatePredecessor() -> None:
-    node: Peer = LocalPeer(IP, PORT)
+def test_updatePredecessor(initNode: LocalPeer) -> None:
+    node = initNode
 
     new_predecessor: Peer = RemotePeer(B_IP, B_PORT)
     node.updatePredecessor(new_predecessor)
@@ -109,9 +123,9 @@ def test_updatePredecessor() -> None:
     predecessor: Peer = node.getPredecessor()
     assert predecessor.id.value == new_predecessor.id.value
 
-def test_updateFingerTable() -> None:
+def test_updateFingerTable(initNode: LocalPeer) -> None:
     # Note: This test performed without update other finger
-    node: LocalPeer = LocalPeer(IP, PORT) # 9c9ce...
+    node = initNode # 9c9ce...
     new_finger: Peer = RemotePeer(B_IP, B_PORT) # e762d...
 
     node.updateFingerTable(new_finger, 1)

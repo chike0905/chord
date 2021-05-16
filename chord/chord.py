@@ -127,21 +127,24 @@ class FingerTable():
 class LocalPeer(Peer):
     table: FingerTable
     id: Key
+    initialpeer: Optional[RemotePeer] = None
+    joined: bool = False
 
-    def __init__(self, ip: ipaddress.IPv4Address, port: int, initialpeer: Optional[RemotePeer] = None) -> None:
+    def __init__(self, ip: ipaddress.IPv4Address, port: int, initialpeer_ip: Optional[ipaddress.IPv4Address] = None, initialpeer_port: Optional[int] = None) -> None:
         super().__init__(ip, port)
         self.table = FingerTable(self.id)
-
-        self._join(initialpeer)
+        if initialpeer_ip and initialpeer_port:
+            self.initialpeer = RemotePeer(initialpeer_ip, initialpeer_port) 
     
-    def _join(self, initialpeer: Optional[RemotePeer]) -> None:
-        if initialpeer:
-            self._initFingerTable(initialpeer)
+    def join(self) -> None:
+        if self.initialpeer:
+            self._initFingerTable(self.initialpeer)
         else:
             for i in range(KEYLENGTH):
                 self.table.fingers[i].node = self
             self.table.successor = self.table.fingers[0].node #type: ignore
             self.table.predecessor = self
+        self.joined = True
 
     def _initFingerTable(self, initialpeer: RemotePeer) -> None:
         self.table.fingers[0].node = initialpeer.findSuccessor(self.table.fingers[0].start)
@@ -153,7 +156,6 @@ class LocalPeer(Peer):
                 self.table.fingers[i + 1].node = self.table.fingers[i].node
             else:
                 self.table.fingers[i + 1].node = initialpeer.findSuccessor(self.table.fingers[i + 1].start)
-
         self._update_others()
 
     def _update_others(self) -> None:
@@ -192,7 +194,7 @@ class LocalPeer(Peer):
         node: Peer = self
         suc: Peer = node.getSuccessor()
         while not isBetween(node.id, suc.id, key):
-            self.closestPrecedingFinger(key)
+            node = self.closestPrecedingFinger(key)
         return node
 
     def closestPrecedingFinger(self, key: Key) -> Peer:
@@ -203,9 +205,9 @@ class LocalPeer(Peer):
 
 
 class NodeServicer(peer_pb2_grpc.PeerServicer):
-    def __init__(self, ip: ipaddress.IPv4Address, port: int) -> None:
+    def __init__(self, ip: ipaddress.IPv4Address, port: int, initial_ip: Optional[ipaddress.IPv4Address] = None, initial_port: Optional[int] = None) -> None:
         super().__init__()
-        self.node = LocalPeer(ip, port)
+        self.node = LocalPeer(ip, port, initial_ip, initial_port)
 
     def getSuccessor(self, request, context): #type: ignore
         peer = self.node.getSuccessor()
@@ -236,15 +238,16 @@ import time
 
 _ALIVE_CHECK_INTERVAL = 1
 class NodeServer():
-    def __init__(self, ip: ipaddress.IPv4Address, port: int) -> None:
-        self.servicer = NodeServicer(ip, port)
+    def __init__(self, ip: ipaddress.IPv4Address, port: int, initial_ip: Optional[ipaddress.IPv4Address] = None, initial_port: Optional[int] = None) -> None:
+        self.servicer = NodeServicer(ip, port, initial_ip, initial_port)
         self.alive = True
         self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
         peer_pb2_grpc.add_PeerServicer_to_server(self.servicer, self.server) #type: ignore
-        self.server.add_insecure_port("[::]:"+str(port))
+        self.server.add_insecure_port(ip.compressed+":"+str(port))
         
     def serve(self) -> None:
         self.server.start()
+        self.servicer.node.join()
         try:
             while True:
                 time.sleep(_ALIVE_CHECK_INTERVAL)
