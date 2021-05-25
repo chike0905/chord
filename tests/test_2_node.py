@@ -37,7 +37,7 @@ def test_getSuccessorOnRemotePeer(node: NodeServer) -> None:
 
     # Note: There is a single node in a Chord ring. It returns RemotePeer itself.
     suc = peer.getPredecessor()
-    assert suc.id.value == ID
+    assert suc.id.value == ID.value
 
 
 def test_getPredecessorOnRemotePeer(node: NodeServer) -> None:
@@ -46,7 +46,7 @@ def test_getPredecessorOnRemotePeer(node: NodeServer) -> None:
 
     # Note: There is a single node in a Chord ring. It returns RemotePeer itself.
     suc = peer.getPredecessor()
-    assert suc.id.value == ID
+    assert suc.id.value == ID.value
 
 
 def test_updatePredecessorOnRemotePeer(node: NodeServer) -> None:
@@ -64,7 +64,7 @@ def test_findSuccessorOnRemotePeer(node: NodeServer) -> None:
 
     # Note: There is a single node in a Chord ring. It returns RemotePeer itself.
     suc = peer.findSuccessor(key)
-    assert suc.id.value == ID
+    assert suc.id.value == ID.value
 
 
 def test_initFingerWithInitialPeer(node: NodeServer) -> None:
@@ -79,7 +79,7 @@ def test_initFingerWithInitialPeer(node: NodeServer) -> None:
 
     waitLocalNodeJoinProcess(localnode)
 
-    assert localnode.table.successor.id.value == ID
+    assert localnode.table.successor.id.value == ID.value
     suc_predecessor = localnode.table.successor.getPredecessor()
     assert suc_predecessor.id.value == localnode.id.value
 

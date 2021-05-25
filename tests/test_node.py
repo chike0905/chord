@@ -14,12 +14,12 @@ def test_init_node() -> None:
     assert node.ip == IP
     assert node.port == PORT
 
-    assert node.id.value == ID
+    assert node.id.value == ID.value
 
-    assert node.table.successor.id.value == ID
+    assert node.table.successor.id.value == ID.value
 
     for finger in node.table.fingers:
-        assert finger.node.id.value == ID  # type: ignore
+        assert finger.node.id.value == ID.value  # type: ignore
 
 
 @pytest.fixture(scope="function")
