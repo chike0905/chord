@@ -83,13 +83,21 @@ def test_initFingerWithInitialPeer(nodeA: LocalPeer) -> None:
     suc_predecessor = localnode.table.successor.getPredecessor()
     assert suc_predecessor.id.value == localnode.id.value
 
-    # Finger Check
+    # Finger Check of Node B
     for i in range(KEYLENGTH):
         finger = localnode.table.fingers[i]
         if isBetween(localnode.id, initial_peer.id, finger.start):
             assert finger.node.id.value == initial_peer.id.value  # type: ignore
         else:
             assert finger.node.id.value == localnode.id.value  # type: ignore
+    
+    # Finger Check of Node A
+    for i in range(KEYLENGTH):
+        finger = nodeA.table.fingers[i]
+        if isBetween(nodeA.id, localnode.id, finger.start):
+            assert finger.node.id.value == localnode.id.value
+        else:
+            assert finger.node.id.value == nodeA.id.value
 
     # Teradown
     nodeB.stop()
