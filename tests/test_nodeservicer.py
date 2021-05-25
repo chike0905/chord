@@ -10,7 +10,7 @@ def test_NodeServicer() -> None:
     NodeServicer(IP, PORT)
 
 
-def test_ServeGetSuccessor(node: NodeServer) -> None:
+def test_ServeGetSuccessor(nodeA: LocalPeer) -> None:
     stub = getStub()
 
     response = stub.getSuccessor(peer_pb2.GetSuccessor())
@@ -20,7 +20,7 @@ def test_ServeGetSuccessor(node: NodeServer) -> None:
     assert response.port == PORT
 
 
-def test_ServeGetPredecessor(node: NodeServer) -> None:
+def test_ServeGetPredecessor(nodeA: LocalPeer) -> None:
     stub = getStub()
 
     response = stub.getPredecessor(peer_pb2.GetPredecessor())
@@ -30,7 +30,7 @@ def test_ServeGetPredecessor(node: NodeServer) -> None:
     assert response.port == PORT
 
 
-def test_ServeUpdatePredecessor(node: NodeServer) -> None:
+def test_ServeUpdatePredecessor(nodeA: LocalPeer) -> None:
     stub = getStub()
 
     msg = peer_pb2.NotifyPredecessor(ip=B_IP.packed, port=B_PORT)
@@ -42,24 +42,24 @@ def test_ServeUpdatePredecessor(node: NodeServer) -> None:
     assert response.port == B_PORT
 
 
-def test_ServeUpdateFingerTable(node: NodeServer) -> None:
+def test_ServeUpdateFingerTable(nodeA: LocalPeer) -> None:
     stub = getStub()
 
     msg = peer_pb2.UpdateFingerTable(index=1, ip=B_IP.packed, port=B_PORT)
     response = stub.updateFingerTable(msg)
-    firstfinger = node.servicer.node.table.fingers[1]
+    firstfinger = nodeA.table.fingers[1]
     assert firstfinger.node.id.value == B_ID.value      # type: ignore
     assert firstfinger.node.ip.packed == B_IP.packed    # type: ignore
     assert firstfinger.node.port == B_PORT              # type: ignore
 
     msg = peer_pb2.UpdateFingerTable(index=0, ip=B_IP.packed, port=B_PORT)
     response = stub.updateFingerTable(msg)
-    assert node.servicer.node.table.successor.id.value == B_ID.value
-    assert node.servicer.node.table.successor.ip.packed == B_IP.packed
-    assert node.servicer.node.table.successor.port == B_PORT
+    assert nodeA.table.successor.id.value == B_ID.value
+    assert nodeA.table.successor.ip.packed == B_IP.packed
+    assert nodeA.table.successor.port == B_PORT
 
 
-def test_ServeFindSuccessor(node: NodeServer) -> None:
+def test_ServeFindSuccessor(nodeA: LocalPeer) -> None:
     stub = getStub()
 
     key = Key("1".zfill(64))

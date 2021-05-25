@@ -6,6 +6,8 @@ import pytest
 import ipaddress
 import threading
 
+from typing import Tuple
+
 # Node A
 # 9c9ce7cea14809cf88796f1706533f5e360f23d7207ab4452f9af433f7c6e1d8
 IP: ipaddress.IPv4Address = ipaddress.IPv4Address("127.0.0.1")
@@ -30,13 +32,41 @@ def getStub() -> peer_pb2_grpc.PeerStub:
     return peer_pb2_grpc.PeerStub(channel)  # type: ignore
 
 
-@pytest.fixture(scope="function")
-def node():  # type: ignore
-    server = NodeServer(IP, PORT)
+def setupNodeThread(ip: ipaddress.IPv4Address, port: int) -> Tuple[threading.Thread, NodeServer]:
+    server = NodeServer(ip, PORT)
     thread = threading.Thread(None, server.serve)
+
+    return thread, server
+
+
+@pytest.fixture(scope="function")
+def nodeA():  # type: ignore
+    thread, server = setupNodeThread(IP, PORT)
     thread.start()
 
-    yield server
+    yield server.servicer.node
+
+    server.stop()
+    thread.join()
+
+
+@pytest.fixture(scope="function")
+def nodeB():  # type: ignore
+    thread, server = setupNodeThread(B_IP, B_PORT)
+    thread.start()
+
+    yield server.servicer.node
+
+    server.stop()
+    thread.join()
+
+
+@pytest.fixture(scope="function")
+def nodeC():  # type: ignore
+    thread, server = setupNodeThread(C_IP, C_PORT)
+    thread.start()
+
+    yield server.servicer.node
 
     server.stop()
     thread.join()

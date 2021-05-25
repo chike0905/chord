@@ -14,7 +14,7 @@ def waitLocalNodeJoinProcess(localnode: LocalPeer) -> None:
 
 
 @pytest.fixture(scope="function")
-def nodeWithInitialPeer(node):  # type: ignore
+def nodeWithInitialPeer(nodeA):  # type: ignore
     initial_peer = RemotePeer(IP, PORT)         # 9c9ce...
     nodeB = NodeServer(B_IP, B_PORT, IP, PORT)  # e762d...
 
@@ -32,7 +32,7 @@ def nodeWithInitialPeer(node):  # type: ignore
 
 
 # Tests
-def test_getSuccessorOnRemotePeer(node: NodeServer) -> None:
+def test_getSuccessorOnRemotePeer(nodeA: LocalPeer) -> None:
     peer = RemotePeer(IP, PORT)
 
     # Note: There is a single node in a Chord ring. It returns RemotePeer itself.
@@ -40,7 +40,7 @@ def test_getSuccessorOnRemotePeer(node: NodeServer) -> None:
     assert suc.id.value == ID.value
 
 
-def test_getPredecessorOnRemotePeer(node: NodeServer) -> None:
+def test_getPredecessorOnRemotePeer(nodeA: LocalPeer) -> None:
     nodeid = hashlib.sha256(IP.packed).hexdigest()
     peer = RemotePeer(IP, PORT)
 
@@ -49,7 +49,7 @@ def test_getPredecessorOnRemotePeer(node: NodeServer) -> None:
     assert suc.id.value == ID.value
 
 
-def test_updatePredecessorOnRemotePeer(node: NodeServer) -> None:
+def test_updatePredecessorOnRemotePeer(nodeA: LocalPeer) -> None:
     peer = RemotePeer(IP, PORT)
     localnode = LocalPeer(B_IP, B_PORT)
 
@@ -58,7 +58,7 @@ def test_updatePredecessorOnRemotePeer(node: NodeServer) -> None:
     assert peer.getPredecessor().id.value == localnode.id.value
 
 
-def test_findSuccessorOnRemotePeer(node: NodeServer) -> None:
+def test_findSuccessorOnRemotePeer(nodeA: LocalPeer) -> None:
     peer = RemotePeer(IP, PORT)
     key = Key("1".zfill(64))
 
@@ -67,7 +67,7 @@ def test_findSuccessorOnRemotePeer(node: NodeServer) -> None:
     assert suc.id.value == ID.value
 
 
-def test_initFingerWithInitialPeer(node: NodeServer) -> None:
+def test_initFingerWithInitialPeer(nodeA: LocalPeer) -> None:
     initial_peer = RemotePeer(IP, PORT)         # 9c9ce...
     nodeB = NodeServer(B_IP, B_PORT, IP, PORT)  # e762d...
     # Note: The last finger would be localnode itself with following test configration
