@@ -25,7 +25,7 @@ def nodeWithInitialPeer(nodeA):  # type: ignore
     # Wait localnode joined
     waitLocalNodeJoinProcess(localnode)
 
-    yield localnode
+    yield localnode, nodeA
 
     nodeB.stop()
     thread.join()
@@ -90,30 +90,34 @@ def test_initFingerWithInitialPeer(nodeA: LocalPeer) -> None:
             assert finger.node.id.value == initial_peer.id.value  # type: ignore
         else:
             assert finger.node.id.value == localnode.id.value  # type: ignore
-    
+
     # Finger Check of Node A
     for i in range(KEYLENGTH):
         finger = nodeA.table.fingers[i]
         if isBetween(nodeA.id, localnode.id, finger.start):
-            assert finger.node.id.value == localnode.id.value
+            assert finger.node.id.value == localnode.id.value  # type: ignore
         else:
-            assert finger.node.id.value == nodeA.id.value
+            assert finger.node.id.value == nodeA.id.value  # type: ignore
 
     # Teradown
     nodeB.stop()
     thread.join()
 
 
-def test_findSuccessorWithInitialPeer(nodeWithInitialPeer: LocalPeer) -> None:
-    initial_peer = RemotePeer(IP, PORT)  # 9c9ce...
-    localnode = nodeWithInitialPeer
-
+def findSuccessorFromNode(localnode: LocalPeer) -> None:
     key = Key("1".ljust(64, "0"))  # 1000...0000
     suc = localnode.findSuccessor(key)
 
-    assert suc.id.value == initial_peer.id.value
+    assert suc.id.value == ID.value
 
     key = Key("a".ljust(64, "0"))  # a000...0000
     suc = localnode.findSuccessor(key)
 
-    assert suc.id.value == localnode.id.value
+    assert suc.id.value == B_ID.value
+
+
+def test_findSuccessorWithInitialPeer(nodeWithInitialPeer: Tuple[LocalPeer, LocalPeer]) -> None:
+    nodeB, nodeA = nodeWithInitialPeer
+
+    findSuccessorFromNode(nodeA)
+    findSuccessorFromNode(nodeB)
