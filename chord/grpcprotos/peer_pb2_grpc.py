@@ -39,6 +39,11 @@ class PeerStub(object):
                 request_serializer=peer__pb2.FindSuccessor.SerializeToString,
                 response_deserializer=peer__pb2.PeerResponse.FromString,
                 )
+        self.closestPrecedingFinger = channel.unary_unary(
+                '/Peer/closestPrecedingFinger',
+                request_serializer=peer__pb2.ClosestPrecedingFinger.SerializeToString,
+                response_deserializer=peer__pb2.PeerResponse.FromString,
+                )
 
 
 class PeerServicer(object):
@@ -74,6 +79,12 @@ class PeerServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def closestPrecedingFinger(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_PeerServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -100,6 +111,11 @@ def add_PeerServicer_to_server(servicer, server):
             'findSuccessor': grpc.unary_unary_rpc_method_handler(
                     servicer.findSuccessor,
                     request_deserializer=peer__pb2.FindSuccessor.FromString,
+                    response_serializer=peer__pb2.PeerResponse.SerializeToString,
+            ),
+            'closestPrecedingFinger': grpc.unary_unary_rpc_method_handler(
+                    servicer.closestPrecedingFinger,
+                    request_deserializer=peer__pb2.ClosestPrecedingFinger.FromString,
                     response_serializer=peer__pb2.PeerResponse.SerializeToString,
             ),
     }
@@ -193,6 +209,23 @@ class Peer(object):
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/Peer/findSuccessor',
             peer__pb2.FindSuccessor.SerializeToString,
+            peer__pb2.PeerResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def closestPrecedingFinger(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/Peer/closestPrecedingFinger',
+            peer__pb2.ClosestPrecedingFinger.SerializeToString,
             peer__pb2.PeerResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

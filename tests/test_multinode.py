@@ -128,5 +128,5 @@ def test_findSuccessorWith3nodes(setup3NodeCluster: Tuple[LocalPeer, LocalPeer, 
     nodeA, nodeB, nodeC = setup3NodeCluster
 
     findSuccessorFromNode(nodeA)
-    findSuccessorFromNode(nodeB)  # TODO: Failing 
+    findSuccessorFromNode(nodeB)
     findSuccessorFromNode(nodeC)

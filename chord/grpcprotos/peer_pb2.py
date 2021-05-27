@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\npeer.proto\"\x0e\n\x0cGetSuccessor\"\x10\n\x0eGetPredecessor\"-\n\x11NotifyPredecessor\x12\n\n\x02ip\x18\x01 \x01(\x0c\x12\x0c\n\x04port\x18\x02 \x01(\r\"<\n\x11UpdateFingerTable\x12\r\n\x05index\x18\x01 \x01(\r\x12\n\n\x02ip\x18\x02 \x01(\x0c\x12\x0c\n\x04port\x18\x03 \x01(\r\"\x1c\n\rFindSuccessor\x12\x0b\n\x03key\x18\x01 \x01(\t\"4\n\x0cPeerResponse\x12\n\n\x02id\x18\x01 \x01(\t\x12\n\n\x02ip\x18\x02 \x01(\x0c\x12\x0c\n\x04port\x18\x03 \x01(\r\"\x1d\n\x0eStatusResponse\x12\x0b\n\x03res\x18\x01 \x01(\x08\x32\x94\x02\n\x04Peer\x12.\n\x0cgetSuccessor\x12\r.GetSuccessor\x1a\r.PeerResponse\"\x00\x12\x32\n\x0egetPredecessor\x12\x0f.GetPredecessor\x1a\r.PeerResponse\"\x00\x12:\n\x11updatePredecessor\x12\x12.NotifyPredecessor\x1a\x0f.StatusResponse\"\x00\x12:\n\x11updateFingerTable\x12\x12.UpdateFingerTable\x1a\x0f.StatusResponse\"\x00\x12\x30\n\rfindSuccessor\x12\x0e.FindSuccessor\x1a\r.PeerResponse\"\x00\x62\x06proto3'
+  serialized_pb=b'\n\npeer.proto\"\x0e\n\x0cGetSuccessor\"\x10\n\x0eGetPredecessor\"-\n\x11NotifyPredecessor\x12\n\n\x02ip\x18\x01 \x01(\x0c\x12\x0c\n\x04port\x18\x02 \x01(\r\"<\n\x11UpdateFingerTable\x12\r\n\x05index\x18\x01 \x01(\r\x12\n\n\x02ip\x18\x02 \x01(\x0c\x12\x0c\n\x04port\x18\x03 \x01(\r\"\x1c\n\rFindSuccessor\x12\x0b\n\x03key\x18\x01 \x01(\t\"%\n\x16\x43losestPrecedingFinger\x12\x0b\n\x03key\x18\x01 \x01(\t\"4\n\x0cPeerResponse\x12\n\n\x02id\x18\x01 \x01(\t\x12\n\n\x02ip\x18\x02 \x01(\x0c\x12\x0c\n\x04port\x18\x03 \x01(\r\"\x1d\n\x0eStatusResponse\x12\x0b\n\x03res\x18\x01 \x01(\x08\x32\xd8\x02\n\x04Peer\x12.\n\x0cgetSuccessor\x12\r.GetSuccessor\x1a\r.PeerResponse\"\x00\x12\x32\n\x0egetPredecessor\x12\x0f.GetPredecessor\x1a\r.PeerResponse\"\x00\x12:\n\x11updatePredecessor\x12\x12.NotifyPredecessor\x1a\x0f.StatusResponse\"\x00\x12:\n\x11updateFingerTable\x12\x12.UpdateFingerTable\x1a\x0f.StatusResponse\"\x00\x12\x30\n\rfindSuccessor\x12\x0e.FindSuccessor\x1a\r.PeerResponse\"\x00\x12\x42\n\x16\x63losestPrecedingFinger\x12\x17.ClosestPrecedingFinger\x1a\r.PeerResponse\"\x00\x62\x06proto3'
 )
 
 
@@ -192,6 +192,38 @@ _FINDSUCCESSOR = _descriptor.Descriptor(
 )
 
 
+_CLOSESTPRECEDINGFINGER = _descriptor.Descriptor(
+  name='ClosestPrecedingFinger',
+  full_name='ClosestPrecedingFinger',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='key', full_name='ClosestPrecedingFinger.key', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=187,
+  serialized_end=224,
+)
+
+
 _PEERRESPONSE = _descriptor.Descriptor(
   name='PeerResponse',
   full_name='PeerResponse',
@@ -233,8 +265,8 @@ _PEERRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=187,
-  serialized_end=239,
+  serialized_start=226,
+  serialized_end=278,
 )
 
 
@@ -265,8 +297,8 @@ _STATUSRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=241,
-  serialized_end=270,
+  serialized_start=280,
+  serialized_end=309,
 )
 
 DESCRIPTOR.message_types_by_name['GetSuccessor'] = _GETSUCCESSOR
@@ -274,6 +306,7 @@ DESCRIPTOR.message_types_by_name['GetPredecessor'] = _GETPREDECESSOR
 DESCRIPTOR.message_types_by_name['NotifyPredecessor'] = _NOTIFYPREDECESSOR
 DESCRIPTOR.message_types_by_name['UpdateFingerTable'] = _UPDATEFINGERTABLE
 DESCRIPTOR.message_types_by_name['FindSuccessor'] = _FINDSUCCESSOR
+DESCRIPTOR.message_types_by_name['ClosestPrecedingFinger'] = _CLOSESTPRECEDINGFINGER
 DESCRIPTOR.message_types_by_name['PeerResponse'] = _PEERRESPONSE
 DESCRIPTOR.message_types_by_name['StatusResponse'] = _STATUSRESPONSE
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
@@ -313,6 +346,13 @@ FindSuccessor = _reflection.GeneratedProtocolMessageType('FindSuccessor', (_mess
   })
 _sym_db.RegisterMessage(FindSuccessor)
 
+ClosestPrecedingFinger = _reflection.GeneratedProtocolMessageType('ClosestPrecedingFinger', (_message.Message,), {
+  'DESCRIPTOR' : _CLOSESTPRECEDINGFINGER,
+  '__module__' : 'peer_pb2'
+  # @@protoc_insertion_point(class_scope:ClosestPrecedingFinger)
+  })
+_sym_db.RegisterMessage(ClosestPrecedingFinger)
+
 PeerResponse = _reflection.GeneratedProtocolMessageType('PeerResponse', (_message.Message,), {
   'DESCRIPTOR' : _PEERRESPONSE,
   '__module__' : 'peer_pb2'
@@ -336,8 +376,8 @@ _PEER = _descriptor.ServiceDescriptor(
   index=0,
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_start=273,
-  serialized_end=549,
+  serialized_start=312,
+  serialized_end=656,
   methods=[
   _descriptor.MethodDescriptor(
     name='getSuccessor',
@@ -385,6 +425,16 @@ _PEER = _descriptor.ServiceDescriptor(
     index=4,
     containing_service=None,
     input_type=_FINDSUCCESSOR,
+    output_type=_PEERRESPONSE,
+    serialized_options=None,
+    create_key=_descriptor._internal_create_key,
+  ),
+  _descriptor.MethodDescriptor(
+    name='closestPrecedingFinger',
+    full_name='Peer.closestPrecedingFinger',
+    index=5,
+    containing_service=None,
+    input_type=_CLOSESTPRECEDINGFINGER,
     output_type=_PEERRESPONSE,
     serialized_options=None,
     create_key=_descriptor._internal_create_key,

@@ -25,6 +25,11 @@ message FindSuccessor {
     string key = 1;
 }
 
+// Get the closest preceding finger of the specified key
+message ClosestPrecedingFinger {
+    string key = 1;
+}
+
 // Response Messages
 message PeerResponse {
     string id = 1;
@@ -43,4 +48,5 @@ service Peer {
     rpc updatePredecessor (NotifyPredecessor) returns (StatusResponse) {}
     rpc updateFingerTable (UpdateFingerTable) returns (StatusResponse) {}
     rpc findSuccessor (FindSuccessor) returns (PeerResponse) {}
+    rpc closestPrecedingFinger (ClosestPrecedingFinger) returns (PeerResponse) {}
 }

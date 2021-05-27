@@ -51,6 +51,10 @@ class Peer(metaclass=ABCMeta):
     def findSuccessor(self, id: Key) -> Peer:
         pass
 
+    @abstractmethod
+    def closestPrecedingFinger(self, id: Key) -> Peer:
+        pass
+
 
 class RemotePeer(Peer):
     def getSuccessor(self) -> Peer:
@@ -93,6 +97,15 @@ class RemotePeer(Peer):
 
         msg = peer_pb2.FindSuccessor(key=id.value)
         response = stub.findSuccessor(msg)
+        ip = ipaddress.IPv4Address(response.ip)
+
+        return RemotePeer(ip, response.port)
+
+    def closestPrecedingFinger(self, id: Key) -> Peer:
+        stub = self._getStub()
+
+        msg = peer_pb2.ClosestPrecedingFinger(key=id.value)
+        response = stub.closestPrecedingFinger(msg)
         ip = ipaddress.IPv4Address(response.ip)
 
         return RemotePeer(ip, response.port)
@@ -215,7 +228,8 @@ class LocalPeer(Peer):
         node: Peer = self
         suc: Peer = node.getSuccessor()
         while not isBetween(node.id, suc.id, key):
-            node = self.closestPrecedingFinger(key)
+            node = node.closestPrecedingFinger(key)
+            suc = node.getSuccessor()
         return node
 
     def closestPrecedingFinger(self, key: Key) -> Peer:
@@ -266,6 +280,13 @@ class NodeServicer(peer_pb2_grpc.PeerServicer):
         return peer_pb2.PeerResponse(id=suc.id.value,
                                      ip=suc.ip.packed,
                                      port=suc.port)
+
+    def closestPrecedingFinger(self, request, context):  # type: ignore
+        peer: Union[LocalPeer, RemotePeer] = \
+            self.node.closestPrecedingFinger(Key(request.key))
+        return peer_pb2.PeerResponse(id=peer.id.value,
+                                     ip=peer.ip.packed,
+                                     port=peer.port)
 
 
 # Node Server

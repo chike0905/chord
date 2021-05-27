@@ -68,3 +68,16 @@ def test_ServeFindSuccessor(nodeA: LocalPeer) -> None:
     assert response.id == ID.value
     assert response.ip == IP.packed
     assert response.port == PORT
+
+
+def test_ServeClosestPrecedingFinger(nodeA: LocalPeer) -> None:
+    # Note:
+    # This test is on single node cluster.
+    # Hence, ClosestProcerdingFinger returns the served node iteself.
+    stub = getStub()
+
+    key = Key("1".zfill(64))
+    response = stub.closestPrecedingFinger(peer_pb2.ClosestPrecedingFinger(key=key.value))
+    assert response.id == ID.value
+    assert response.ip == IP.packed
+    assert response.port == PORT
